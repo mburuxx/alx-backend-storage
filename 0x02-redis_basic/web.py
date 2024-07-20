@@ -21,13 +21,19 @@ def data_cacher(method: Callable[[str], str]) -> Callable[[str], str]:
     @wraps(method)
     def invoker(url: str) -> str:
         """ Wrapper function to cache data and count URL accesses. """
-        redis_store.incr(f'count:{url}')
-        result = redis_store.get(f'result:{url}')
+        count_key = f'count:{url}'
+        result_key = f'result:{url}'
+        
+        redis_store.incr(count_key)
+        
+        result = redis_store.get(result_key)
         if result:
             return result.decode('utf-8')
+        
         result = method(url)
-        redis_store.setex(f'result:{url}', 10, result)
+        redis_store.setex(result_key, 10, result)
         return result
+    
     return invoker
 
 
@@ -42,10 +48,15 @@ def get_page(url: str) -> str:
     Returns:
         str: The HTML content of the URL.
     """
-    return requests.get(url).text
+    response = requests.get(url)
+    return response.text
 
 
 if __name__ == "__main__":
     url = "http://slowwly.robertomurray.co.uk"
     print(get_page(url))
     print(get_page(url))
+
+    # Check the count value
+    count = redis_store.get(f'count:{url}')
+    print(count.decode('utf-8'))
