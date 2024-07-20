@@ -10,7 +10,7 @@ from functools import wraps
 
 def call_history(method: Callable) -> Callable:
     """
-    Decorator to store the history of inputs and outputs for a particular method.
+    Decorator to store the history of inputs & outputs for a particular method.
     """
     method_key = method.__qualname__
     inputs = method_key + ':inputs'
