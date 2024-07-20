@@ -23,17 +23,20 @@ def data_cacher(method: Callable[[str], str]) -> Callable[[str], str]:
         """ Wrapper function to cache data and count URL accesses. """
         count_key = f'count:{url}'
         result_key = f'result:{url}'
-        
+
+        # Increment count or set it to 0 if it doesn't exist
+        if not redis_store.exists(count_key):
+            redis_store.set(count_key, 0)
         redis_store.incr(count_key)
-        
+
         result = redis_store.get(result_key)
         if result:
             return result.decode('utf-8')
-        
+
         result = method(url)
         redis_store.setex(result_key, 10, result)
         return result
-    
+
     return invoker
 
 
@@ -53,7 +56,7 @@ def get_page(url: str) -> str:
 
 
 if __name__ == "__main__":
-    url = "http://slowwly.robertomurray.co.uk"
+    url = "http://google.com"
     print(get_page(url))
     print(get_page(url))
 
